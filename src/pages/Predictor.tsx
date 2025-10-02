@@ -5,8 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FlaskConical, RefreshCw, ThermometerSnowflake, Droplets } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FlaskConical, RefreshCw, ThermometerSnowflake, Droplets, Calendar as CalendarIcon, Package } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface PredictionResult {
   foodName: string;
@@ -14,12 +19,18 @@ interface PredictionResult {
   shelfLifeDays: number;
   confidence: number;
   tips: string;
+  expiryDate?: Date;
+  storageMethod?: string;
+  packagingType?: string;
 }
 
 const Predictor = () => {
   const [foodName, setFoodName] = useState("");
   const [temperature, setTemperature] = useState("");
   const [humidity, setHumidity] = useState("");
+  const [expiryDate, setExpiryDate] = useState<Date>();
+  const [storageMethod, setStorageMethod] = useState<string>("");
+  const [packagingType, setPackagingType] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PredictionResult | null>(null);
 
@@ -34,8 +45,15 @@ const Predictor = () => {
     return "General";
   };
 
-  // Placeholder AI prediction logic
-  const predictShelfLife = (category: string, temp: number, hum: number): { days: number; confidence: number; tips: string } => {
+  // Placeholder AI prediction logic with optional parameters
+  const predictShelfLife = (
+    category: string, 
+    temp: number, 
+    hum: number,
+    storage?: string,
+    packaging?: string,
+    expiry?: Date
+  ): { days: number; confidence: number; tips: string } => {
     let baseDays = 7;
     let confidence = 85;
     let tips = "Store in a cool, dry place.";
@@ -64,6 +82,30 @@ const Predictor = () => {
         break;
     }
 
+    // Adjust based on storage method
+    if (storage === "frozen") {
+      baseDays = Math.floor(baseDays * 3);
+      confidence += 10;
+      tips += " Frozen storage significantly extends shelf life.";
+    } else if (storage === "refrigerated") {
+      baseDays = Math.floor(baseDays * 1.5);
+      confidence += 5;
+    } else if (storage === "room_temperature") {
+      baseDays = Math.floor(baseDays * 0.8);
+      confidence -= 5;
+    }
+
+    // Adjust based on packaging
+    if (packaging === "sealed") {
+      baseDays = Math.floor(baseDays * 1.3);
+      confidence += 5;
+      tips += " Sealed packaging helps preserve freshness.";
+    } else if (packaging === "opened") {
+      baseDays = Math.max(1, Math.floor(baseDays * 0.6));
+      confidence -= 10;
+      tips += " Opened packaging reduces shelf life significantly.";
+    }
+
     // Adjust based on temperature
     if (temp > 25) {
       baseDays = Math.max(1, Math.floor(baseDays * 0.5));
@@ -77,6 +119,16 @@ const Predictor = () => {
     if (hum > 80) {
       baseDays = Math.max(1, Math.floor(baseDays * 0.7));
       confidence -= 10;
+    }
+
+    // Calculate days until expiry if provided
+    if (expiry) {
+      const now = new Date();
+      const daysUntilExpiry = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysUntilExpiry > 0 && daysUntilExpiry < baseDays) {
+        baseDays = daysUntilExpiry;
+        tips += ` Product expires on ${format(expiry, "PPP")}.`;
+      }
     }
 
     confidence = Math.min(95, Math.max(50, confidence));
@@ -110,14 +162,24 @@ const Predictor = () => {
     // Simulate AI processing time
     setTimeout(() => {
       const category = detectCategory(foodName);
-      const prediction = predictShelfLife(category, temp, hum);
+      const prediction = predictShelfLife(
+        category, 
+        temp, 
+        hum, 
+        storageMethod || undefined,
+        packagingType || undefined,
+        expiryDate
+      );
 
       setResult({
         foodName,
         category,
         shelfLifeDays: prediction.days,
         confidence: prediction.confidence,
-        tips: prediction.tips
+        tips: prediction.tips,
+        expiryDate,
+        storageMethod: storageMethod || undefined,
+        packagingType: packagingType || undefined
       });
 
       setIsLoading(false);
@@ -129,6 +191,9 @@ const Predictor = () => {
     setFoodName("");
     setTemperature("");
     setHumidity("");
+    setExpiryDate(undefined);
+    setStorageMethod("");
+    setPackagingType("");
     setResult(null);
   };
 
@@ -202,6 +267,79 @@ const Predictor = () => {
                     />
                   </div>
 
+                  {/* Optional Fields */}
+                  <div className="pt-4 border-t border-border/50">
+                    <p className="text-sm text-muted-foreground mb-4">Optional Information (for better accuracy)</p>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="storageMethod" className="flex items-center gap-2">
+                          <ThermometerSnowflake className="h-4 w-4 text-primary" />
+                          Storage Method <span className="text-xs text-muted-foreground">(Optional)</span>
+                        </Label>
+                        <Select value={storageMethod} onValueChange={setStorageMethod} disabled={isLoading}>
+                          <SelectTrigger id="storageMethod">
+                            <SelectValue placeholder="Select storage method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="frozen">Frozen</SelectItem>
+                            <SelectItem value="refrigerated">Refrigerated</SelectItem>
+                            <SelectItem value="room_temperature">Room Temperature</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="packagingType" className="flex items-center gap-2">
+                          <Package className="h-4 w-4 text-primary" />
+                          Packaging Type <span className="text-xs text-muted-foreground">(Optional)</span>
+                        </Label>
+                        <Select value={packagingType} onValueChange={setPackagingType} disabled={isLoading}>
+                          <SelectTrigger id="packagingType">
+                            <SelectValue placeholder="Select packaging type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sealed">Sealed/Unopened</SelectItem>
+                            <SelectItem value="opened">Opened</SelectItem>
+                            <SelectItem value="loose">Loose/Unwrapped</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-primary" />
+                          Expiry Date <span className="text-xs text-muted-foreground">(Optional)</span>
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !expiryDate && "text-muted-foreground"
+                              )}
+                              disabled={isLoading}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {expiryDate ? format(expiryDate, "PPP") : "Pick expiry date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={expiryDate}
+                              onSelect={setExpiryDate}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground button-shadow transition-smooth"
@@ -240,6 +378,26 @@ const Predictor = () => {
                         <span className="text-sm text-muted-foreground">Category:</span>
                         <span className="font-semibold text-primary">{result.category}</span>
                       </div>
+                      {result.storageMethod && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Storage:</span>
+                          <span className="font-semibold text-foreground capitalize">
+                            {result.storageMethod.replace("_", " ")}
+                          </span>
+                        </div>
+                      )}
+                      {result.packagingType && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Packaging:</span>
+                          <span className="font-semibold text-foreground capitalize">{result.packagingType}</span>
+                        </div>
+                      )}
+                      {result.expiryDate && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Expires:</span>
+                          <span className="font-semibold text-foreground">{format(result.expiryDate, "PPP")}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="text-center py-6 bg-primary/5 rounded-lg border-2 border-primary/20">
