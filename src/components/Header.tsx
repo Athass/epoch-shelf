@@ -1,6 +1,4 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { UserCircle, Shield } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export const Header = () => {
@@ -11,35 +9,13 @@ export const Header = () => {
           <Link to="/" className="flex items-center gap-3 group">
             <img 
               src={logo} 
-              alt="Shelf Life Predictor" 
+              alt="ShelfWise - Smart Shelf Life Prediction" 
               className="h-10 w-10 sm:h-12 sm:w-12 transition-transform group-hover:scale-105"
             />
             <span className="text-lg sm:text-xl font-bold text-foreground hidden sm:inline">
-              Shelf Life Predictor
+              ShelfWise
             </span>
           </Link>
-          
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Button 
-              variant="outline" 
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-smooth"
-              asChild
-            >
-              <Link to="/admin" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin</span>
-              </Link>
-            </Button>
-            <Button 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground button-shadow transition-smooth"
-              asChild
-            >
-              <Link to="/user" className="flex items-center gap-2">
-                <UserCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">User</span>
-              </Link>
-            </Button>
-          </div>
         </div>
       </div>
     </header>

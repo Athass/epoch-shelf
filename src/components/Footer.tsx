@@ -17,15 +17,15 @@ export const Footer = () => {
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary" />
-                <span>info@shelflife.com</span>
+                <span>atharvamane2022@gmail.com</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 8329284039</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span>123 Science Ave, Tech City</span>
+                <span>Annasaheb Dange College of Engineering and Technology, Ashta</span>
               </div>
             </div>
           </div>
@@ -41,7 +41,7 @@ export const Footer = () => {
         </div>
         
         <div className="border-t border-border mt-8 pt-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Shelf Life Predictor. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} ShelfWise. All rights reserved.</p>
         </div>
       </div>
     </footer>

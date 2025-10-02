@@ -3,8 +3,6 @@ import { Footer } from "@/components/Footer";
 import { StatsCard } from "@/components/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { UserCircle, Shield } from "lucide-react";
-import heroFood from "@/assets/hero-food.jpg";
 
 const Index = () => {
   return (
@@ -38,19 +36,7 @@ const Index = () => {
                     className="bg-primary hover:bg-primary/90 text-primary-foreground button-shadow transition-smooth text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6"
                     asChild
                   >
-                    <Link to="/admin" className="flex items-center gap-2">
-                      <Shield className="h-5 w-5" />
-                      Admin Login
-                    </Link>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-smooth text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6"
-                    asChild
-                  >
-                    <Link to="/predictor" className="flex items-center gap-2">
-                      <UserCircle className="h-5 w-5" />
+                    <Link to="/predictor">
                       Try Predictor
                     </Link>
                   </Button>
